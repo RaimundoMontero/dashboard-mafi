@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAFI · Mapa de Aprendizajes de Formación Integral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --school-blue:   #003087;
+    --school-blue-2: #1A3F8F;
+    --school-red:    #C8102E;
+    --bg:            #FAFAF7;
+    --surface:       #FFFFFF;
+    --surface-2:     #F4F4EE;
+    --ink:           #0F172A;
+    --ink-2:         #334155;
+    --muted:         #64748B;
+    --hairline:      #E5E5DD;
+    --hairline-2:    #D4D4C9;
+
+    --dim-socio: #E91E63;
+    --dim-cog:   #2196F3;
+    --dim-esp:   #9C27B0;
+
+    --logro-d: #15803D;
+    --logro-a: #65A30D;
+    --logro-e: #CA8A04;
+    --logro-b: #EA580C;
+    --logro-i: #DC2626;
+    --logro-n: #94A3B8;
+
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.04);
+    --shadow:    0 2px 4px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Calibri', 'Carlito', -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* ================ HEADER ================ */
+  .topbar {
+    background: var(--school-blue);
+    color: white;
+    padding: 22px 40px;
+    border-bottom: 4px solid var(--school-red);
+  }
+  .topbar-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+  }
+  .brand {
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .brand-mark {
+    font-family: 'Calibri', 'Carlito', sans-serif;
+    font-weight: 900; font-size: 32px; line-height: 1;
+    letter-spacing: -0.02em;
+    
+  }
+  .brand-mark sub {
+    font-size: 14px; font-weight: 300;
+    color: rgba(255,255,255,.7);
+    margin-left: 6px;
+    letter-spacing: 0.02em;
+    font-family: 'Calibri', 'Carlito', sans-serif;
+  }
+  .brand-tag {
+    font-size: 12px;
+    color: rgba(255,255,255,.65);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    border-left: 1px solid rgba(255,255,255,.25);
+    padding-left: 14px;
+  }
+
+  .role-switcher { display: flex; gap: 4px; background: rgba(255,255,255,.08);
+    padding: 4px; border-radius: 999px; }
+  .role-btn {
+    background: transparent; border: 0; padding: 10px 18px;
+    font: inherit; font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,.75);
+    cursor: pointer; border-radius: 999px;
+    transition: all .2s ease;
+    letter-spacing: 0.01em;
+  }
+  .role-btn:hover { color: white; background: rgba(255,255,255,.06); }
+  .role-btn.active {
+    background: white; color: var(--school-blue);
+    box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    font-weight: 600;
+  }
+
+  /* ================ MAIN ================ */
+  main {
+    max-width: 1400px; margin: 0 auto; padding: 36px 40px 72px;
+  }
+
+  .view-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 32px; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .view-title {
+    font-family: 'Calibri', 'Carlito', sans-serif;
+    font-weight: 600; font-size: 44px; line-height: 1.05;
+    letter-spacing: -0.02em;
+    
+  }
+  .view-title em {
+    font-style: italic; color: var(--school-red);
+    
+  }
+  .view-eyebrow {
+    font-size: 11px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.2em; margin-bottom: 10px;
+  }
+  .view-sub { color: var(--ink-2); font-size: 16px; max-width: 520px; }
+
+  /* SELECTORS (cycle, course) */
+  .pill-selector {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    background: var(--surface); padding: 6px;
+    border: 1px solid var(--hairline); border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .pill {
+    background: transparent; border: 0; padding: 8px 16px;
+    font: inherit; font-size: 13px; font-weight: 500;
+    color: var(--ink-2); cursor: pointer; border-radius: 8px;
+    transition: all .15s ease;
+  }
+  .pill:hover { background: var(--surface-2); }
+  .pill.active {
+    background: var(--ink); color: white;
+  }
+
+  /* ================ KPI GRID ================ */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-bottom: 32px;
+  }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--hairline);
+    padding: 20px 22px; border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+  }
+  .kpi::before {
+    content: ''; position: absolute; top: 0; left: 0; height: 3px; width: 36px;
+    background: var(--school-blue);
+  }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 8px; }
+  .kpi-value {
+    font-family: 'Calibri', 'Carlito', sans-serif; font-weight: 500;
+    font-size: 38px; line-height: 1; letter-spacing: -0.02em;
+    color: var(--ink);
+    
+  }
+  .kpi-value .unit { font-size: 18px; color: var(--muted); margin-left: 4px;
+    font-family: 'Calibri', 'Carlito', sans-serif; font-weight: 500; }
+  .kpi-foot { font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+  .kpi.alert::before { background: var(--logro-i); }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ================ SECTIONS ================ */
+  .section {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 14px; padding: 28px 30px;
+    margin-bottom: 22px; box-shadow: var(--shadow-sm);
+  }
+  .section-head { margin-bottom: 22px; }
+  .section-title {
+    font-family: 'Calibri', 'Carlito', sans-serif;
+    font-weight: 600; font-size: 22px; letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .section-desc { color: var(--muted); font-size: 13.5px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+  @media (max-width: 1100px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  .chart-box { position: relative; height: 280px; }
+  .chart-box.tall { height: 360px; }
+  .chart-box.short { height: 200px; }
+
+  /* ================ DIMENSION CARDS ================ */
+  .dim-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  .dim-card {
+    border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 18px 20px; background: var(--surface);
+    border-left: 4px solid var(--dim-socio);
+  }
+  .dim-card[data-dim="dim-cog"] { border-left-color: var(--dim-cog); }
+  .dim-card[data-dim="dim-esp"] { border-left-color: var(--dim-esp); }
+  .dim-card-name { font-size: 12px; font-weight: 600; color: var(--ink-2);
+    text-transform: uppercase; letter-spacing: 0.1em; }
+  .dim-card-value {
+    font-family: 'Calibri', 'Carlito', sans-serif; font-weight: 500;
+    font-size: 32px; margin-top: 6px; letter-spacing: -0.02em;
+  }
+  .dim-card-bar {
+    height: 6px; background: var(--hairline); border-radius: 999px;
+    margin-top: 12px; overflow: hidden;
+  }
+  .dim-card-bar-fill { height: 100%; background: var(--dim-socio); border-radius: 999px;
+    transition: width 1s cubic-bezier(.16,1,.3,1); }
+  .dim-card[data-dim="dim-cog"] .dim-card-bar-fill { background: var(--dim-cog); }
+  .dim-card[data-dim="dim-esp"] .dim-card-bar-fill { background: var(--dim-esp); }
+  .dim-card-foot { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  @media (max-width: 800px) {
+    .dim-cards { grid-template-columns: 1fr; }
+  }
+
+  /* ================ TABLE ================ */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+  }
+  thead th {
+    text-align: left; padding: 12px 14px;
+    font-size: 11px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--hairline-2);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 12px 14px; border-bottom: 1px solid var(--hairline);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--surface-2); cursor: pointer; }
+  td .student-link { font-weight: 500; }
+
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .badge-d { background: #D4F1DF; color: var(--logro-d); }
+  .badge-a { background: #E5F5D6; color: var(--logro-a); }
+  .badge-e { background: #FEF3C7; color: var(--logro-e); }
+  .badge-b { background: #FFE4D1; color: var(--logro-b); }
+  .badge-i { background: #FEE2E2; color: var(--logro-i); }
+  .badge-n { background: #F1F5F9; color: var(--logro-n); }
+
+  .estado {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px;
+  }
+  .estado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; }
+  .estado.completado::before { background: var(--logro-d); }
+  .estado.en_progreso::before { background: var(--logro-e); }
+  .estado.atrasado::before { background: var(--logro-i); }
+  .estado.sin_iniciar::before { background: var(--muted); }
+
+  .progress-track {
+    width: 80px; height: 6px; background: var(--hairline);
+    border-radius: 999px; overflow: hidden; display: inline-block;
+    vertical-align: middle; margin-right: 8px;
+  }
+  .progress-fill { height: 100%; background: var(--school-blue); }
+
+  /* ================ STUDENT DETAIL ================ */
+  .student-panel {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 14px; padding: 28px 30px; box-shadow: var(--shadow-sm);
+    margin-top: 22px;
+  }
+  .student-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap; padding-bottom: 18px;
+    border-bottom: 1px solid var(--hairline-2); margin-bottom: 22px;
+  }
+  .student-name {
+    font-family: 'Calibri', 'Carlito', sans-serif; font-weight: 600;
+    font-size: 26px; letter-spacing: -0.01em;
+  }
+  .student-meta { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+  .close-btn {
+    background: transparent; border: 1px solid var(--hairline-2);
+    padding: 8px 14px; border-radius: 8px;
+    font: inherit; font-size: 12px; cursor: pointer;
+    color: var(--ink-2);
+  }
+  .close-btn:hover { background: var(--surface-2); }
+
+  .student-grid {
+    display: grid; grid-template-columns: 360px 1fr; gap: 28px;
+  }
+  @media (max-width: 900px) {
+    .student-grid { grid-template-columns: 1fr; }
+  }
+
+  .hab-list { list-style: none; }
+  .hab-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px dashed var(--hairline);
+    gap: 12px;
+  }
+  .hab-item:last-child { border-bottom: 0; }
+  .hab-name { font-size: 13.5px; }
+  .hab-name small { color: var(--muted); margin-right: 8px; font-weight: 600; }
+  .hab-score {
+    font-family: 'Calibri', 'Carlito', sans-serif; font-weight: 600;
+    font-size: 18px; min-width: 60px; text-align: right;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex; gap: 14px; font-size: 12px; color: var(--ink-2);
+    margin-top: 12px; flex-wrap: wrap;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ================ LOADING ================ */
+  .loader {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 60vh; gap: 14px;
+  }
+  .loader-text {
+    font-family: 'Calibri', 'Carlito', sans-serif; font-size: 22px;
+    color: var(--ink-2); font-style: italic;
+  }
+  .loader-bar {
+    width: 200px; height: 3px; background: var(--hairline);
+    border-radius: 999px; overflow: hidden;
+  }
+  .loader-bar::after {
+    content: ''; display: block; height: 100%; width: 30%;
+    background: var(--school-blue);
+    animation: loader 1.4s infinite ease-in-out;
+  }
+  @keyframes loader {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(450%); }
+  }
+
+  .empty { text-align: center; padding: 40px; color: var(--muted); font-style: italic; }
+
+  /* footnote */
+  .demo-note {
+    background: #FFF8E1; border: 1px solid #F4D77A;
+    padding: 10px 16px; border-radius: 10px;
+    font-size: 12.5px; color: #7A5A00;
+    margin-bottom: 24px;
+  }
+  .demo-note strong { font-weight: 700; }
+
+  /* ================ DIMENSION DETAIL ================ */
+  .dim-detail-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 18px; margin-bottom: 22px;
+  }
+  .dim-detail-pills {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .dim-detail-pill {
+    background: var(--surface); border: 1px solid var(--hairline);
+    padding: 8px 14px 8px 12px; border-radius: 999px;
+    font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all .15s;
+    color: var(--ink-2);
+  }
+  .dim-detail-pill .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dim-detail-pill .pill-prom {
+    font-size: 12px; color: var(--muted); margin-left: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .dim-detail-pill:hover:not(.active) { background: var(--surface-2); }
+  .dim-detail-pill.active {
+    background: var(--ink); color: white; border-color: var(--ink);
+  }
+  .dim-detail-pill.active .pill-prom { color: rgba(255,255,255,.65); }
+
+  .ejes-grid {
+    display: grid; gap: 16px; grid-template-columns: 1fr;
+  }
+  @media (min-width: 900px) {
+    .ejes-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .eje-card {
+    border: 1px solid var(--hairline);
+    border-left: 4px solid var(--muted);
+    border-radius: 10px;
+    padding: 16px 18px;
+    background: var(--surface);
+  }
+  .eje-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 10px; margin-bottom: 8px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .eje-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .eje-prom {
+    font-size: 18px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .eje-prom .unit { font-size: 11px; color: var(--muted); margin-left: 2px; font-weight: 500; }
+
+  .hab-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center; column-gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--hairline);
+  }
+  .hab-row:last-child { border-bottom: 0; }
+  .hab-row .hab-cod {
+    font-size: 11px; font-weight: 700;
+    color: var(--muted); letter-spacing: 0.04em;
+  }
+  .hab-row .hab-info { min-width: 0; }
+  .hab-row .hab-nom { font-size: 13px; color: var(--ink); }
+  .hab-row .hab-bar {
+    margin-top: 5px; height: 4px;
+    background: var(--hairline); border-radius: 999px;
+    overflow: hidden;
+  }
+  .hab-row .hab-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: var(--muted);
+    transition: width .8s cubic-bezier(.16,1,.3,1);
+  }
+  .hab-row .hab-pun {
+    font-size: 14px; font-weight: 700;
+    min-width: 48px; text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .hab-row .hab-pun.muted { color: var(--muted); font-weight: 400; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">MAFI</div>
+      <div class="brand-tag">Colegio San Francisco Javier</div>
+    </div>
+    <div class="role-switcher" id="roleSwitcher">
+      <button class="role-btn" data-role="directivo">Equipo directivo</button>
+      <button class="role-btn" data-role="ciclo">Director de ciclo</button>
+      <button class="role-btn active" data-role="jefe">Profesor jefe</button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <div class="loader">
+    <div class="loader-text">Cargando datos del semestre…</div>
+    <div class="loader-bar"></div>
+  </div>
+</main>
+
+<script>
+// =============================================================
+//  ENDPOINT — reemplazar con la URL real de tu Web App
+// =============================================================
+const ENDPOINT_MAFI = CONFIG.endpoint;
+
+// =============================================================
+//  CATÁLOGO MAFI — dim → eje → aprendizaje por nivel
+//  Extraído automáticamente de las planillas Sheets.
+//  Cuando se agreguen ciclos 2/3/4, agregar sus niveles acá.
+// =============================================================
+const CATALOGO_MAFI = {
+  "Playgroup": [
+    { "codigo": "1.1", "nombre": "Autocuidado", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.2", "nombre": "Conocimiento del lenguaje emocional y expresión de emociones", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.3", "nombre": "Conciencia y valoración de sí mismo(a)", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.4", "nombre": "Corporalidad y movimiento", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "2.1", "nombre": "Comunicación empática", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "3.1", "nombre": "Participación y ciudadanía", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "3.2", "nombre": "Solidaridad y cuidado del entorno", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "4.1", "nombre": "Autorregulación y toma de conciencia", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "4.3", "nombre": "Planificación", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "5.1", "nombre": "Adquisición del conocimiento y argumentación", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "6.1", "nombre": "Creatividad y originalidad", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "7.1", "nombre": "Cultivar la vida interior", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "7.2", "nombre": "Reconocer la condición de hijos de Dios", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "8.1", "nombre": "Vivir comunitariamente", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.3", "nombre": "Diálogo fe y cultura", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "9.1", "nombre": "Amar y servir", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+    { "codigo": "9.3", "nombre": "Valorar modelos y testigos de la fe cristiana", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+  ],
+  "Prekinder": [
+    { "codigo": "1.1", "nombre": "Autocuidado", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.2", "nombre": "Conocimiento del lenguaje emocional y expresión de emociones", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.3", "nombre": "Conciencia y valoración de sí mismo(a)", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.4", "nombre": "Corporalidad y movimiento", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "2.1", "nombre": "Comunicación empática", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "3.1", "nombre": "Participación y ciudadanía", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "3.2", "nombre": "Solidaridad y cuidado del entorno", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "4.1", "nombre": "Autorregulación y toma de conciencia", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "4.3", "nombre": "Planificación", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "5.1", "nombre": "Adquisición del conocimiento y argumentación", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "6.1", "nombre": "Creatividad y originalidad", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "7.1", "nombre": "Cultivar la vida interior", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "7.2", "nombre": "Reconocer la condición de hijos de Dios", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "8.1", "nombre": "Vivir comunitariamente", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.3", "nombre": "Diálogo fe y cultura", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "9.3", "nombre": "Valorar modelos y testigos de la fe cristiana", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+  ],
+  "Kinder": [
+    { "codigo": "1.1", "nombre": "Autocuidado", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.2", "nombre": "Conocimiento del lenguaje emocional y expresión de emociones", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.3", "nombre": "Conciencia y valoración de sí mismo(a)", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.4", "nombre": "Corporalidad y movimiento", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "2.1", "nombre": "Comunicación empática", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "3.1", "nombre": "Participación y ciudadanía", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "3.2", "nombre": "Solidaridad y cuidado del entorno", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "4.1", "nombre": "Autorregulación y toma de conciencia", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "4.3", "nombre": "Planificación", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "5.1", "nombre": "Adquisición del conocimiento y argumentación", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "6.1", "nombre": "Creatividad y originalidad", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "7.1", "nombre": "Cultivar la vida interior", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "7.2", "nombre": "Reconocer la condición de hijos de Dios", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "8.1", "nombre": "Vivir comunitariamente", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.3", "nombre": "Diálogo fe y cultura", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "9.1", "nombre": "Amar y servir", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+    { "codigo": "9.3", "nombre": "Valorar modelos y testigos de la fe cristiana", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+  ],
+  "Primero": [
+    { "codigo": "1.1", "nombre": "Autocuidado", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.2", "nombre": "Conocimiento del lenguaje emocional y expresión de emociones", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.3", "nombre": "Conciencia y valoración de sí mismo(a)", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "2.1", "nombre": "Comunicación empática", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "2.2", "nombre": "Sexualidad integrada", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "2.3", "nombre": "Colaboración", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "3.1", "nombre": "Participación y ciudadanía", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "3.2", "nombre": "Solidaridad y cuidado del entorno", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "3.3", "nombre": "Vocación", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "4.1", "nombre": "Autorregulación y toma de conciencia", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "4.3", "nombre": "Planificación", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "5.1", "nombre": "Adquisición del conocimiento y argumentación", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "5.3", "nombre": "Discernimiento", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "6.1", "nombre": "Creatividad y originalidad", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "6.3", "nombre": "Emprendimiento", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "7.1", "nombre": "Cultivar la vida interior", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "7.2", "nombre": "Reconocer la condición de hijos de Dios", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "8.1", "nombre": "Vivir comunitariamente", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.2", "nombre": "Sentir con la Iglesia", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.3", "nombre": "Diálogo fe y cultura", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "9.1", "nombre": "Amar y servir", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+    { "codigo": "9.3", "nombre": "Valorar modelos y testigos de la fe cristiana", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+  ],
+  "Segundo": [
+    { "codigo": "1.1", "nombre": "Autocuidado", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.2", "nombre": "Conocimiento del lenguaje emocional y expresión de emociones", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "1.3", "nombre": "Conciencia y valoración de sí mismo(a)", "dim": "dim-socio", "eje": "Relación consigo mismo" },
+    { "codigo": "2.1", "nombre": "Comunicación empática", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "2.2", "nombre": "Sexualidad integrada", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "2.3", "nombre": "Colaboración", "dim": "dim-socio", "eje": "Relación con los demás" },
+    { "codigo": "3.1", "nombre": "Participación y ciudadanía", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "3.2", "nombre": "Solidaridad y cuidado del entorno", "dim": "dim-socio", "eje": "Relación con el mundo" },
+    { "codigo": "4.1", "nombre": "Autorregulación y toma de conciencia", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "4.3", "nombre": "Planificación", "dim": "dim-cog", "eje": "Pensamiento metacognitivo" },
+    { "codigo": "5.1", "nombre": "Adquisición del conocimiento y argumentación", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "5.3", "nombre": "Discernimiento", "dim": "dim-cog", "eje": "Pensamiento crítico" },
+    { "codigo": "6.1", "nombre": "Creatividad y originalidad", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "6.3", "nombre": "Emprendimiento", "dim": "dim-cog", "eje": "Pensamiento creativo" },
+    { "codigo": "7.1", "nombre": "Cultivar la vida interior", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "7.2", "nombre": "Reconocer la condición de hijos de Dios", "dim": "dim-esp", "eje": "Vida interior de la persona" },
+    { "codigo": "8.1", "nombre": "Vivir comunitariamente", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.2", "nombre": "Sentir con la Iglesia", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "8.3", "nombre": "Diálogo fe y cultura", "dim": "dim-esp", "eje": "Vida eclesial comunitaria y celebrativa" },
+    { "codigo": "9.1", "nombre": "Amar y servir", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+    { "codigo": "9.3", "nombre": "Valorar modelos y testigos de la fe cristiana", "dim": "dim-esp", "eje": "Vida apostólica, testimonial y servicial" },
+  ],
+};
+
+// =============================================================
+//  ADAPTADOR doGet JSON → formato interno del dashboard
+// =============================================================
+
+/**
+ * Transforma la respuesta del doGet en el formato que usa el dashboard.
+ * El dashboard interno trabaja con listas planas de:
+ *   - cursos    [{id, nombre, nivel, cicloColegio}]
+ *   - estudiantes [{id, nombreCompleto, cursoId, nivelId}]
+ *   - evaluaciones [{estudianteId, cursoId, habId, ejeId, dimId, puntaje}]
+ *   - niveles   [{id, dimensiones:[{id, nombre, color, ejes:[{id, nombre, habilidades:[{id, codigo, nombre}]}]}]}]
+ */
+function adaptarDatosDoGet(raw) {
+  const cursos = [];
+  const estudiantes = [];
+  const evaluaciones = [];
+  const nivelesMap = {}; // nivel → estructura jerarquica
+
+  // Mapeo nombre ciclo → etiqueta organizacional SFJ
+  const CICLO_LABEL = {
+    'Primer':   'Primer Ciclo',
+    'Segundo':  'Segundo Ciclo',
+    'Tercer':   'Tercer Ciclo',
+    'Cuarto':   'Cuarto Ciclo',
+  };
+
+  for (const cursoDato of raw.cursos) {
+    if (cursoDato.error || !cursoDato.estudiantes?.length) continue;
+
+    const cursoId  = cursoDato.curso;  // ej: "PG-A"
+    const nivelId  = cursoDato.nivel;  // ej: "Playgroup"
+    const cicloOrg = CICLO_LABEL[cursoDato.ciclo] || cursoDato.ciclo;
+
+    cursos.push({
+      id:           cursoId,
+      nombre:       cursoId,
+      nivel:        nivelId,
+      cicloColegio: cicloOrg,
+    });
+
+    // Construir estructura de nivel si aún no existe
+    if (!nivelesMap[nivelId]) {
+      const catalogoNivel = CATALOGO_MAFI[nivelId] || [];
+      // Agrupar aprendizajes en dimensiones → ejes
+      const dimsMap = {};
+      for (const ap of catalogoNivel) {
+        if (!dimsMap[ap.dim]) dimsMap[ap.dim] = {};
+        if (!dimsMap[ap.dim][ap.eje]) dimsMap[ap.dim][ap.eje] = [];
+        dimsMap[ap.dim][ap.eje].push({ id: ap.codigo, codigo: ap.codigo, nombre: ap.nombre });
+      }
+      const DIM_META = {
+        'dim-socio': { nombre: 'Socioafectiva',        color: '#E91E63' },
+        'dim-cog':   { nombre: 'Cognitiva',             color: '#2196F3' },
+        'dim-esp':   { nombre: 'Espiritual religiosa',  color: '#9C27B0' },
+      };
+      const dimensiones = Object.entries(dimsMap).map(([dimId, ejesObj]) => ({
+        id:    dimId,
+        nombre: DIM_META[dimId]?.nombre || dimId,
+        color:  DIM_META[dimId]?.color  || '#999',
+        ejes:  Object.entries(ejesObj).map(([ejeNombre, habs]) => ({
+          id:          ejeNombre,
+          nombre:      ejeNombre,
+          habilidades: habs,
+        })),
+      }));
+      nivelesMap[nivelId] = { id: nivelId, dimensiones };
+    }
+
+    const catalogoNivel = CATALOGO_MAFI[nivelId] || [];
+    // Índice rápido: codigo → { dim, eje }
+    const apIdx = {};
+    for (const ap of catalogoNivel) apIdx[ap.codigo] = ap;
+
+    for (const est of cursoDato.estudiantes) {
+      const estId = `${cursoId}::${est.nombre}`;
+      estudiantes.push({
+        id:            estId,
+        nombreCompleto: est.nombre,
+        cursoId,
+        nivelId,
+      });
+
+      // Una "evaluación" por aprendizaje
+      for (const [codigo, puntaje] of Object.entries(est.aprendizajes)) {
+        const meta = apIdx[codigo];
+        if (!meta) continue;
+        evaluaciones.push({
+          estudianteId: estId,
+          cursoId,
+          habId:   codigo,
+          ejeId:   meta.eje,
+          dimId:   meta.dim,
+          puntaje: puntaje,  // null = no observado
+        });
+      }
+    }
+  }
+
+  const niveles = Object.values(nivelesMap);
+
+  return { cursos, estudiantes, evaluaciones, niveles };
+}
+
+// =============================================================
+//  ESTADO Y CARGA
+// =============================================================
+const state = {
+  data: null,
+  role: 'jefe',           // vista por defecto: profesor jefe
+  cicloFiltro: 'Primer Ciclo',
+  cursoFiltro: null,
+  estudianteFiltro: null,
+  dimSeleccionada: 'dim-socio',
+  charts: {},
+};
+
+const NIVELES_LOGRO = [
+  { id:'destacado',    label:'Destacado',    letra:'D', color:'#15803D', min:89 },
+  { id:'adecuado',     label:'Adecuado',     letra:'A', color:'#65A30D', min:80 },
+  { id:'elemental',    label:'Elemental',    letra:'E', color:'#CA8A04', min:68 },
+  { id:'basico',       label:'Básico',       letra:'B', color:'#EA580C', min:60 },
+  { id:'insuficiente', label:'Insuficiente', letra:'I', color:'#DC2626', min:1  },
+  { id:'no_observado', label:'No observado', letra:'N/O', color:'#94A3B8', min:0 },
+];
+
+const CICLOS_COLEGIO = ['Primer Ciclo','Segundo Ciclo','Tercer Ciclo','Cuarto Ciclo'];
+
+function clasificar(p) {
+  if (p === null || p === undefined) return 'no_observado';
+  if (p >= 89) return 'destacado';
+  if (p >= 80) return 'adecuado';
+  if (p >= 68) return 'elemental';
+  if (p >= 60) return 'basico';
+  if (p >=  1) return 'insuficiente';
+  return 'no_observado';
+}
+
+const fmt = (n) => isNaN(n) ? '—' : n.toFixed(1);
+const fmtInt = (n) => n.toLocaleString('es-CL');
+
+// Configuración global de Chart.js
+Chart.defaults.font.family = "'Calibri', 'Carlito', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#475569';
+Chart.defaults.borderColor = '#E5E5DD';
+
+// =============================================================
+//  DATA HELPERS
+// =============================================================
+function byId(arr, id) { return arr.find(x => x.id === id); }
+
+function cursosPorCicloColegio(ciclo) {
+  return state.data.cursos.filter(c => c.cicloColegio === ciclo);
+}
+
+function estudiantesPorCurso(cursoId) {
+  return state.data.estudiantes.filter(e => e.cursoId === cursoId);
+}
+
+function evalsPorCurso(cursoId) {
+  return state.data.evaluaciones.filter(e => e.cursoId === cursoId);
+}
+
+function evalsPorEstudiante(estId) {
+  return state.data.evaluaciones.filter(e => e.estudianteId === estId);
+}
+
+function promedio(arr) {
+  const obs = arr.filter(p => p !== null && p !== undefined);
+  if (!obs.length) return null;
+  return obs.reduce((a,b)=>a+b,0) / obs.length;
+}
+
+function distribucionLogro(evals) {
+  const counts = { destacado:0, adecuado:0, elemental:0, basico:0, insuficiente:0, no_observado:0 };
+  for (const e of evals) counts[clasificar(e.puntaje)]++;
+  return counts;
+}
+
+function promedioPorDimension(evals) {
+  const buckets = { 'dim-socio':[], 'dim-cog':[], 'dim-esp':[] };
+  for (const e of evals) {
+    if (e.puntaje !== null) buckets[e.dimId]?.push(e.puntaje);
+  }
+  return {
+    'dim-socio': promedio(buckets['dim-socio']),
+    'dim-cog':   promedio(buckets['dim-cog']),
+    'dim-esp':   promedio(buckets['dim-esp']),
+  };
+}
+
+// Construye la jerarquía dim → ejes → habilidades con promedios calculados
+// a partir de un set de evaluaciones.
+// Usa el nivel del curso activo para obtener la estructura correcta de aprendizajes.
+function jerarquiaPorDimension(evals) {
+  // Inferir nivel desde el curso activo o desde el primer estudiante de las evaluaciones
+  let nivelId = null;
+  if (state.cursoFiltro) {
+    const curso = byId(state.data.cursos, state.cursoFiltro);
+    nivelId = curso?.nivel;
+  }
+  if (!nivelId && evals.length) {
+    const est = byId(state.data.estudiantes, evals[0].estudianteId);
+    nivelId = est?.nivelId;
+  }
+  const nivelMuestra = byId(state.data.niveles, nivelId) || state.data.niveles[0];
+  const out = {};
+  const habIdx = {}, ejeIdx = {};
+
+  for (const dim of nivelMuestra.dimensiones) {
+    const ejes = dim.ejes.map(eje => {
+      const habs = eje.habilidades.map(hab => {
+        const h = { id: hab.id, codigo: hab.codigo, nombre: hab.nombre, prom: null, n: 0 };
+        habIdx[hab.id] = h;
+        return h;
+      });
+      const e = { id: eje.id, nombre: eje.nombre, habilidades: habs, prom: null, n: 0 };
+      ejeIdx[eje.id] = e;
+      return e;
+    });
+    out[dim.id] = { id: dim.id, nombre: dim.nombre, color: dim.color, ejes, prom: null };
+  }
+
+  // Acumular puntajes
+  const accHab = {}, accEje = {}, accDim = {};
+  for (const e of evals) {
+    if (e.puntaje === null || e.puntaje === undefined) continue;
+    (accHab[e.habId] = accHab[e.habId] || []).push(e.puntaje);
+    (accEje[e.ejeId] = accEje[e.ejeId] || []).push(e.puntaje);
+    (accDim[e.dimId] = accDim[e.dimId] || []).push(e.puntaje);
+  }
+  for (const id in accHab) if (habIdx[id]) {
+    habIdx[id].prom = promedio(accHab[id]); habIdx[id].n = accHab[id].length;
+  }
+  for (const id in accEje) if (ejeIdx[id]) {
+    ejeIdx[id].prom = promedio(accEje[id]); ejeIdx[id].n = accEje[id].length;
+  }
+  for (const id in accDim) if (out[id]) {
+    out[id].prom = promedio(accDim[id]);
+  }
+  return out;
+}
+
+// =============================================================
+//  RENDER MAESTRO
+// =============================================================
+function render() {
+  const app = document.getElementById('app');
+  // Limpiar charts previos
+  for (const k in state.charts) state.charts[k]?.destroy();
+  state.charts = {};
+
+  if (state.role === 'directivo')   app.innerHTML = renderDirectivo();
+  else if (state.role === 'ciclo')   app.innerHTML = renderDirectorCiclo();
+  else if (state.role === 'jefe')    app.innerHTML = renderProfesorJefe();
+
+  // Atajar handlers después del innerHTML
+  attachHandlers();
+  // Doble RAF + pequeño delay: garantiza que el layout esté completo antes de
+  // que Chart.js mida los contenedores. Sin esto, en algunos navegadores los
+  // canvases se miden cuando el ancho aún no es final.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      paintCharts();
+      // Forzar un resize por si algún canvas se midió temprano
+      setTimeout(() => {
+        for (const k in state.charts) state.charts[k]?.resize();
+      }, 100);
+    });
+  });
+}
+
+function attachHandlers() {
+  document.querySelectorAll('[data-pick-ciclo]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.cicloFiltro = el.dataset.pickCiclo;
+      render();
+    });
+  });
+  document.querySelectorAll('[data-pick-curso]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.cursoFiltro = el.dataset.pickCurso;
+      state.estudianteFiltro = null;
+      render();
+    });
+  });
+  document.querySelectorAll('[data-pick-estudiante]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.estudianteFiltro = el.dataset.pickEstudiante;
+      render();
+    });
+  });
+  document.querySelectorAll('[data-cerrar-estudiante]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.estudianteFiltro = null;
+      render();
+    });
+  });
+  document.querySelectorAll('[data-pick-dim]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.dimSeleccionada = el.dataset.pickDim;
+      render();
+    });
+  });
+}
+
+// =============================================================
+//  VISTA: EQUIPO DIRECTIVO (toda la escuela)
+// =============================================================
+function renderDirectivo() {
+  const evals = state.data.evaluaciones;
+  const estudiantes = state.data.estudiantes;
+  const obs = evals.filter(e => e.puntaje !== null);
+  const promGen = promedio(obs.map(e => e.puntaje));
+  const dimProm = promedioPorDimension(evals);
+  const dimMax = Object.entries(dimProm).sort((a,b)=>b[1]-a[1])[0];
+  const nombreDim = byId(state.data.niveles[0].dimensiones, dimMax[0]).nombre;
+
+  // Cumplimiento global
+  const av = state.data.avanceEvaluaciones;
+  const totalProg = av.reduce((s,a)=>s+a.completados,0);
+  const totalObj  = av.reduce((s,a)=>s+a.totalObjetivos,0);
+  const cumpl = totalObj ? (totalProg/totalObj*100) : 0;
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-eyebrow">Vista global · 1° Semestre 2026</div>
+        <h1 class="view-title">El colegio en su <em>conjunto</em></h1>
+        <p class="view-sub">Una mirada panorámica del avance formativo de los ${fmtInt(estudiantes.length)} estudiantes a lo largo de los cuatro ciclos del colegio.</p>
+      </div>
+    </div>
+
+    <div class="demo-note">
+      <strong>Prototipo con datos simulados.</strong> Cuando los profesores terminen el llenado en las planillas,
+      este dashboard se conectará a esos datos sin cambios visuales.
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Estudiantes</div>
+        <div class="kpi-value">${fmtInt(estudiantes.length)}</div>
+        <div class="kpi-foot">${state.data.cursos.length} cursos activos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Logro promedio</div>
+        <div class="kpi-value">${fmt(promGen)}<span class="unit">/ 100</span></div>
+        <div class="kpi-foot">categoría: ${NIVELES_LOGRO.find(n=>n.id===clasificar(promGen)).label}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cumplimiento llenado</div>
+        <div class="kpi-value">${fmt(cumpl)}<span class="unit">%</span></div>
+        <div class="kpi-foot">${fmtInt(totalProg)} de ${fmtInt(totalObj)} evaluaciones</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Dimensión más fuerte</div>
+        <div class="kpi-value" style="font-size:26px">${nombreDim}</div>
+        <div class="kpi-foot">${fmt(dimMax[1])} de logro promedio</div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Distribución de niveles de logro</h2>
+        <p class="section-desc">Cómo se reparten los ${fmtInt(obs.length)} registros evaluados a lo largo de las seis categorías.</p>
+      </div>
+      <div class="chart-box short"><canvas id="chDistGlobal"></canvas></div>
+      <div class="legend">${NIVELES_LOGRO.map(n =>
+        `<span class="legend-item"><span class="legend-dot" style="background:${n.color}"></span>${n.label}</span>`).join('')}</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Comparación entre los cuatro ciclos</h2>
+        <p class="section-desc">Logro promedio por dimensión en cada uno de los ciclos del colegio.</p>
+      </div>
+      <div class="chart-box tall"><canvas id="chCiclos"></canvas></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Las tres dimensiones formativas</h2>
+        <p class="section-desc">Logro promedio agregado en cada dimensión.</p>
+      </div>
+      <div class="dim-cards">
+        ${state.data.niveles[0].dimensiones.map(d => {
+          const v = dimProm[d.id];
+          return `
+            <div class="dim-card" data-dim="${d.id}">
+              <div class="dim-card-name">${d.nombre}</div>
+              <div class="dim-card-value">${fmt(v)}<span class="unit" style="color:var(--muted);font-size:14px">/100</span></div>
+              <div class="dim-card-bar"><div class="dim-card-bar-fill" style="width:${v}%"></div></div>
+              <div class="dim-card-foot">${NIVELES_LOGRO.find(n=>n.id===clasificar(v)).label}</div>
+            </div>`;
+        }).join('')}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Estado del llenado por curso</h2>
+        <p class="section-desc">Avance del registro de evaluaciones por curso. Verde = completado, ámbar = en curso, rojo = atrasado.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Ciclo</th><th>Curso</th><th>Estudiantes</th><th>Avance</th><th>Estado promedio</th><th>Logro promedio</th></tr>
+          </thead>
+          <tbody>
+            ${state.data.cursos.map(c => {
+              const ests = estudiantesPorCurso(c.id);
+              const evs = evalsPorCurso(c.id).filter(e=>e.puntaje!==null);
+              const avg = promedio(evs.map(e=>e.puntaje));
+              const av = state.data.avanceEvaluaciones.filter(a=>a.cursoId===c.id);
+              const totC = av.reduce((s,x)=>s+x.completados,0);
+              const totT = av.reduce((s,x)=>s+x.totalObjetivos,0);
+              const pct = totT ? (totC/totT*100) : 0;
+              const counts = av.reduce((acc,a)=>{ acc[a.estado]=(acc[a.estado]||0)+1; return acc; }, {});
+              const estadoMain = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'sin_iniciar';
+              const cls = clasificar(avg);
+              const conf = NIVELES_LOGRO.find(n=>n.id===cls);
+              return `<tr data-pick-curso="${c.id}">
+                <td>${c.cicloColegio}</td>
+                <td><strong>${c.nombre}</strong></td>
+                <td>${ests.length}</td>
+                <td>
+                  <span class="progress-track"><span class="progress-fill" style="width:${pct}%"></span></span>
+                  ${fmt(pct)}%
+                </td>
+                <td><span class="estado ${estadoMain}">${estadoMain.replace('_',' ')}</span></td>
+                <td><span class="badge badge-${conf.letra.toLowerCase()[0]}">${conf.label}</span> ${fmt(avg)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================================
+//  VISTA: DIRECTOR DE CICLO
+// =============================================================
+function renderDirectorCiclo() {
+  const ciclo = state.cicloFiltro;
+  const cursos = cursosPorCicloColegio(ciclo);
+  const cursosIds = cursos.map(c=>c.id);
+  const estudiantes = state.data.estudiantes.filter(e => cursosIds.includes(e.cursoId));
+  const evals = state.data.evaluaciones.filter(e => cursosIds.includes(e.cursoId));
+  const obs = evals.filter(e => e.puntaje !== null);
+  const promCiclo = promedio(obs.map(e=>e.puntaje));
+  const dimProm = promedioPorDimension(evals);
+  const av = state.data.avanceEvaluaciones.filter(a => cursosIds.includes(a.cursoId));
+  const atrasados = av.filter(a => a.estado === 'atrasado').length;
+
+  // Estudiantes con alertas: 2+ evaluaciones insuficientes
+  const alertas = estudiantes.map(est => {
+    const ev = evalsPorEstudiante(est.id);
+    const insuf = ev.filter(e => clasificar(e.puntaje) === 'insuficiente').length;
+    const noObs = ev.filter(e => e.puntaje === null).length;
+    const prom = promedio(ev.filter(e=>e.puntaje!==null).map(e=>e.puntaje));
+    return { est, insuf, noObs, prom, total: ev.length };
+  }).filter(x => x.insuf >= 2 || (x.prom !== null && x.prom < 60))
+    .sort((a,b) => (a.prom||100) - (b.prom||100))
+    .slice(0, 10);
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-eyebrow">Dirección de ciclo · 1° Semestre 2026</div>
+        <h1 class="view-title">Vista del <em>${ciclo}</em></h1>
+        <p class="view-sub">Cursos del ciclo, distribución de logros y estudiantes que requieren acompañamiento.</p>
+      </div>
+      <div class="pill-selector">
+        ${CICLOS_COLEGIO.map(c =>
+          `<button class="pill ${c===ciclo?'active':''}" data-pick-ciclo="${c}">${c}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Estudiantes del ciclo</div>
+        <div class="kpi-value">${fmtInt(estudiantes.length)}</div>
+        <div class="kpi-foot">${cursos.length} cursos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Logro promedio</div>
+        <div class="kpi-value">${fmt(promCiclo)}<span class="unit">/100</span></div>
+        <div class="kpi-foot">categoría: ${NIVELES_LOGRO.find(n=>n.id===clasificar(promCiclo)).label}</div>
+      </div>
+      <div class="kpi ${atrasados ? 'alert':''}">
+        <div class="kpi-label">Cursos × asignaturas atrasados</div>
+        <div class="kpi-value">${atrasados}</div>
+        <div class="kpi-foot">de ${av.length} pares activos</div>
+      </div>
+      <div class="kpi ${alertas.length ? 'alert':''}">
+        <div class="kpi-label">Estudiantes con alertas</div>
+        <div class="kpi-value">${alertas.length}</div>
+        <div class="kpi-foot">requieren mirada cercana</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Comparación entre cursos</h2>
+          <p class="section-desc">Logro promedio en cada curso del ciclo.</p>
+        </div>
+        <div class="chart-box"><canvas id="chCursosCiclo"></canvas></div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Por dimensión</h2>
+          <p class="section-desc">Promedio de las tres dimensiones formativas en este ciclo.</p>
+        </div>
+        <div class="chart-box"><canvas id="chDimCiclo"></canvas></div>
+      </section>
+    </div>
+
+    ${renderDimDetail(evals, `Datos del ${ciclo}.`)}
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Estudiantes con alertas</h2>
+        <p class="section-desc">Listado priorizado: 2 o más evaluaciones insuficientes, o promedio bajo 60.</p>
+      </div>
+      ${alertas.length === 0 ? '<div class="empty">Sin alertas en este ciclo. 🎉</div>' : `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Estudiante</th><th>Curso</th><th>Insuficientes</th><th>No observados</th><th>Promedio</th></tr></thead>
+          <tbody>
+            ${alertas.map(a => {
+              const c = byId(state.data.cursos, a.est.cursoId);
+              const cls = clasificar(a.prom);
+              const conf = NIVELES_LOGRO.find(n=>n.id===cls);
+              return `<tr data-pick-estudiante="${a.est.id}">
+                <td><span class="student-link">${a.est.nombreCompleto}</span></td>
+                <td>${c.nombre}</td>
+                <td><span class="badge badge-i">${a.insuf}</span></td>
+                <td>${a.noObs}</td>
+                <td><span class="badge badge-${conf.letra.toLowerCase()[0]}">${fmt(a.prom)}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`}
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Cumplimiento por curso × asignatura</h2>
+        <p class="section-desc">Estado del llenado de evaluaciones en este ciclo.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Curso</th><th>Asignatura</th><th>Profesor</th><th>Avance</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${av.sort((a,b) => a.porcentaje - b.porcentaje).slice(0, 20).map(a => {
+              const c = byId(state.data.cursos, a.cursoId);
+              const asig = byId(state.data.asignaturas, a.asignaturaId);
+              const prof = byId(state.data.usuarios, a.profesorId);
+              return `<tr>
+                <td><strong>${c.nombre}</strong></td>
+                <td>${asig.emoji} ${asig.nombre}</td>
+                <td style="color:var(--muted)">${prof?.nombre || '—'}</td>
+                <td>
+                  <span class="progress-track"><span class="progress-fill" style="width:${a.porcentaje}%; background:${a.estado==='atrasado'?'var(--logro-i)':a.estado==='completado'?'var(--logro-d)':'var(--logro-e)'}"></span></span>
+                  ${a.porcentaje}%
+                </td>
+                <td><span class="estado ${a.estado}">${a.estado.replace('_',' ')}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    ${state.estudianteFiltro ? renderStudentDetail(state.estudianteFiltro) : ''}
+  `;
+}
+
+// =============================================================
+//  VISTA: PROFESOR JEFE
+// =============================================================
+function renderProfesorJefe() {
+  // Usar el primer curso disponible si no hay selección
+  if (!state.cursoFiltro || !byId(state.data.cursos, state.cursoFiltro)) {
+    state.cursoFiltro = state.data.cursos[0]?.id;
+  }
+
+  const curso = byId(state.data.cursos, state.cursoFiltro);
+  if (!curso) return '<div class="empty">No hay datos de cursos disponibles.</div>';
+
+  const estudiantes = estudiantesPorCurso(curso.id);
+  const evals = evalsPorCurso(curso.id);
+  const obs = evals.filter(e => e.puntaje !== null);
+  const prom = promedio(obs.map(e=>e.puntaje));
+  const dimProm = promedioPorDimension(evals);
+  const dist = distribucionLogro(evals);
+
+  // Resúmenes por estudiante — ordenados alfabéticamente por nombre completo
+  // Filtrar filas sin nombre real (pueden tener "%" o "N" si la planilla tiene filas auxiliares)
+  const resumen = estudiantes
+    .filter(est => {
+      const n = est.nombreCompleto || '';
+      return n.length > 2 && !/^[%N]\s*$/.test(n.trim());
+    })
+    .map(est => {
+      const ev = evalsPorEstudiante(est.id);
+      const ok = ev.filter(e => e.puntaje !== null);
+      return {
+        est,
+        prom: promedio(ok.map(e=>e.puntaje)),
+        dimProm: promedioPorDimension(ev),
+      };
+    })
+    .sort((a, b) => a.est.nombreCompleto.localeCompare(b.est.nombreCompleto, 'es'));
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-eyebrow">1° Semestre 2026</div>
+        <h1 class="view-title" style="font-style:normal">${curso.nombre}</h1>
+        <p class="view-sub">${estudiantes.length} estudiantes · Nivel: ${curso.nivel}</p>
+      </div>
+      <div class="pill-selector">
+        ${state.data.cursos.map(c =>
+          `<button class="pill ${c.id===curso.id?'active':''}" data-pick-curso="${c.id}">${c.nombre}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Distribución de logros</h2>
+        </div>
+        <div class="chart-box"><canvas id="chDistCurso"></canvas></div>
+      </section>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Por dimensión</h2>
+        </div>
+        <div class="chart-box"><canvas id="chDimCurso"></canvas></div>
+      </section>
+    </div>
+
+    ${renderDimDetail(evals)}
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Listado de estudiantes</h2>
+        <p class="section-desc">Click en una fila para ver el perfil individual.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Estudiante</th><th>Promedio</th><th>Socioafectiva</th><th>Cognitiva</th><th>Espiritual</th></tr>
+          </thead>
+          <tbody>
+            ${resumen.map(r => {
+              const cls = clasificar(r.prom);
+              const conf = NIVELES_LOGRO.find(n=>n.id===cls);
+              const badgeDim = (v) => {
+                const c2 = clasificar(v);
+                const cf = NIVELES_LOGRO.find(n=>n.id===c2);
+                return `<span class="badge badge-${cf.letra.toLowerCase()[0]}">${fmt(v)}</span>`;
+              };
+              return `<tr data-pick-estudiante="${r.est.id}">
+                <td><span class="student-link">${r.est.nombreCompleto}</span></td>
+                <td><span class="badge badge-${conf.letra.toLowerCase()[0]}">${fmt(r.prom)}</span></td>
+                <td>${badgeDim(r.dimProm['dim-socio'])}</td>
+                <td>${badgeDim(r.dimProm['dim-cog'])}</td>
+                <td>${badgeDim(r.dimProm['dim-esp'])}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    ${state.estudianteFiltro ? renderStudentDetail(state.estudianteFiltro) : ''}
+  `;
+}
+
+// =============================================================
+//  DETALLE POR COMPONENTE Y APRENDIZAJE (dim → ejes → habilidades)
+// =============================================================
+function renderDimDetail(evals) {
+  const jer = jerarquiaPorDimension(evals);
+  const dimSel = state.dimSeleccionada in jer ? state.dimSeleccionada : Object.keys(jer)[0];
+  const dim = jer[dimSel];
+  if (!dim) return '';
+
+  return `
+    <section class="section">
+      <div class="dim-detail-head">
+        <div>
+          <h2 class="section-title">Detalle por ejes y componentes</h2>
+        </div>
+        <div class="dim-detail-pills">
+          ${Object.values(jer).map(d => `
+            <button class="dim-detail-pill ${d.id===dimSel?'active':''}" data-pick-dim="${d.id}">
+              <span class="dot" style="background:${d.color}"></span>
+              <span>${d.nombre}</span>
+              <span class="pill-prom">${fmt(d.prom)}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="ejes-grid">
+        ${dim.ejes.map(eje => `
+          <div class="eje-card" style="border-left-color:${dim.color}">
+            <div class="eje-head">
+              <div class="eje-name">${eje.nombre}</div>
+              <div class="eje-prom" style="color:${dim.color}">${fmt(eje.prom)}<span class="unit">/100</span></div>
+            </div>
+            ${eje.habilidades.map(hab => `
+              <div class="hab-row">
+                <div class="hab-cod">${hab.codigo}</div>
+                <div class="hab-info">
+                  <div class="hab-nom">${hab.nombre}</div>
+                  <div class="hab-bar"><div class="hab-bar-fill" style="width:${hab.prom||0}%; background:${dim.color}"></div></div>
+                </div>
+                <div class="hab-pun ${hab.prom===null?'muted':''}">${hab.prom===null?'—':fmt(hab.prom)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+
+function renderStudentDetail(estId) {
+  const est = byId(state.data.estudiantes, estId);
+  if (!est) return '';
+  const curso = byId(state.data.cursos, est.cursoId);
+  const ev = evalsPorEstudiante(estId);
+  const ok = ev.filter(e=>e.puntaje!==null);
+  const prom = promedio(ok.map(e=>e.puntaje));
+  const dimProm = promedioPorDimension(ev);
+
+  // Top y bottom habilidades
+  const habs = {};
+  for (const e of ev) {
+    if (!habs[e.habId]) habs[e.habId] = [];
+    habs[e.habId].push(e.puntaje);
+  }
+  const habList = Object.entries(habs).map(([habId, puntos]) => {
+    const obs2 = puntos.filter(p=>p!==null);
+    return { habId, prom: promedio(obs2) };
+  }).filter(h => h.prom !== null).sort((a,b)=>b.prom-a.prom);
+
+  // Buscar nombres de habilidades en el catálogo del nivel del estudiante
+  const catalogoNivel = CATALOGO_MAFI[est.nivelId] || [];
+  const DIM_NOMBRE_MAP = { 'dim-socio': 'Socioafectiva', 'dim-cog': 'Cognitiva', 'dim-esp': 'Espiritual religiosa' };
+  const habNames = {};
+  for (const ap of catalogoNivel) {
+    habNames[ap.codigo] = { codigo: ap.codigo, nombre: ap.nombre, dim: DIM_NOMBRE_MAP[ap.dim] || ap.dim };
+  }
+
+  const fortalezas = habList.slice(0, 3);
+  const desafios = habList.slice(-3).reverse();
+  const cls = clasificar(prom);
+  const conf = NIVELES_LOGRO.find(n=>n.id===cls);
+
+  return `
+    <div class="student-panel" id="studentPanel">
+      <div class="student-head">
+        <div>
+          <div class="student-name">${est.nombreCompleto}</div>
+          <div class="student-meta">${curso.nombre} · ${curso.cicloColegio}</div>
+        </div>
+        <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
+          <div style="text-align:right">
+            <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em">Promedio general</div>
+            <div style="font-family:'Calibri','Carlito',sans-serif; font-size:32px; font-weight:600; line-height:1">
+              ${fmt(prom)}<span style="color:var(--muted); font-size:18px; font-weight:400">/100</span>
+            </div>
+            <span class="badge badge-${conf.letra.toLowerCase()[0]}" style="margin-top:4px">${conf.label}</span>
+          </div>
+          <button class="close-btn" data-cerrar-estudiante>Cerrar</button>
+        </div>
+      </div>
+
+      <div class="student-grid">
+        <div>
+          <div class="chart-box"><canvas id="chRadar"></canvas></div>
+        </div>
+        <div>
+          <h3 style="font-family:'Calibri','Carlito',sans-serif; font-size:18px; margin-bottom:10px">Fortalezas</h3>
+          <ul class="hab-list">
+            ${fortalezas.map(h => {
+              const n = habNames[h.habId] || { nombre: h.habId };
+              return `<li class="hab-item">
+                <div class="hab-name"><small>${n.codigo||''}</small>${n.nombre}<span style="display:block; color:var(--muted); font-size:12px">${n.dim||''}</span></div>
+                <div class="hab-score" style="color:var(--logro-d)">${fmt(h.prom)}</div>
+              </li>`;
+            }).join('')}
+          </ul>
+
+          <h3 style="font-family:'Calibri','Carlito',sans-serif; font-size:18px; margin: 22px 0 10px">Áreas a fortalecer</h3>
+          <ul class="hab-list">
+            ${desafios.map(h => {
+              const n = habNames[h.habId] || { nombre: h.habId };
+              return `<li class="hab-item">
+                <div class="hab-name"><small>${n.codigo||''}</small>${n.nombre}<span style="display:block; color:var(--muted); font-size:12px">${n.dim||''}</span></div>
+                <div class="hab-score" style="color:${h.prom < 60 ? 'var(--logro-i)' : 'var(--logro-b)'}">${fmt(h.prom)}</div>
+              </li>`;
+            }).join('')}
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================
+//  CHARTS (post-render)
+// =============================================================
+function paintCharts() {
+  if (state.role === 'directivo') paintDirectivoCharts();
+  else if (state.role === 'ciclo') paintCicloCharts();
+  else if (state.role === 'jefe') paintJefeCharts();
+  if (state.estudianteFiltro) paintStudentRadar();
+}
+
+function paintDirectivoCharts() {
+  const ctx1 = document.getElementById('chDistGlobal');
+  if (ctx1) {
+    const dist = distribucionLogro(state.data.evaluaciones);
+    state.charts.dist = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: NIVELES_LOGRO.map(n=>n.label),
+        datasets: [{
+          data: NIVELES_LOGRO.map(n=>dist[n.id]),
+          backgroundColor: NIVELES_LOGRO.map(n=>n.color),
+          borderRadius: 4, borderSkipped: false,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#F1F1EB' }, ticks: { precision: 0 } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Comparación entre los 4 ciclos del colegio
+  const ctx2 = document.getElementById('chCiclos');
+  if (ctx2) {
+    const data = CICLOS_COLEGIO.map(ciclo => {
+      const cursosIds = cursosPorCicloColegio(ciclo).map(c=>c.id);
+      const evs = state.data.evaluaciones.filter(e => cursosIds.includes(e.cursoId));
+      return promedioPorDimension(evs);
+    });
+    state.charts.ciclos = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: CICLOS_COLEGIO,
+        datasets: [
+          { label: 'Socioafectiva', data: data.map(d=>d['dim-socio']), backgroundColor: '#E91E63', borderRadius: 4 },
+          { label: 'Cognitiva',     data: data.map(d=>d['dim-cog']),  backgroundColor: '#2196F3', borderRadius: 4 },
+          { label: 'Espiritual',    data: data.map(d=>d['dim-esp']),  backgroundColor: '#9C27B0', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { min: 0, max: 100, grid: { color: '#F1F1EB' } }
+        }
+      }
+    });
+  }
+}
+
+function paintCicloCharts() {
+  const ciclo = state.cicloFiltro;
+  const cursos = cursosPorCicloColegio(ciclo);
+
+  const ctx = document.getElementById('chCursosCiclo');
+  if (ctx) {
+    state.charts.cur = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: cursos.map(c=>c.nombre),
+        datasets: [{
+          label: 'Promedio',
+          data: cursos.map(c => {
+            const evs = evalsPorCurso(c.id).filter(e=>e.puntaje!==null);
+            return promedio(evs.map(e=>e.puntaje));
+          }),
+          backgroundColor: '#003087',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { min:0, max:100, grid: { color:'#F1F1EB' } }, x: { grid: { display: false } } }
+      }
+    });
+  }
+
+  const ctxD = document.getElementById('chDimCiclo');
+  if (ctxD) {
+    const evs = state.data.evaluaciones.filter(e =>
+      cursos.map(c=>c.id).includes(e.cursoId));
+    const d = promedioPorDimension(evs);
+    state.charts.dim = new Chart(ctxD, {
+      type: 'bar',
+      data: {
+        labels: ['Socioafectiva', 'Cognitiva', 'Espiritual religiosa'],
+        datasets: [{
+          data: [d['dim-socio'], d['dim-cog'], d['dim-esp']],
+          backgroundColor: ['#E91E63', '#2196F3', '#9C27B0'],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { min: 0, max: 100, grid: { color:'#F1F1EB' } }, y: { grid: { display: false } } }
+      }
+    });
+  }
+}
+
+function paintJefeCharts() {
+  const curso = byId(state.data.cursos, state.cursoFiltro);
+  const evs = evalsPorCurso(curso.id);
+  const dist = distribucionLogro(evs);
+
+  const ctx1 = document.getElementById('chDistCurso');
+  if (ctx1) {
+    state.charts.dist = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: NIVELES_LOGRO.map(n=>n.label),
+        datasets: [{
+          data: NIVELES_LOGRO.map(n=>dist[n.id]),
+          backgroundColor: NIVELES_LOGRO.map(n=>n.color),
+          borderWidth: 2, borderColor: '#FFFFFF',
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 12, font: { size: 11 } } } }
+      }
+    });
+  }
+
+  const ctx2 = document.getElementById('chDimCurso');
+  if (ctx2) {
+    const d = promedioPorDimension(evs);
+    state.charts.dim = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: ['Socioafectiva', 'Cognitiva', 'Espiritual religiosa'],
+        datasets: [{
+          data: [d['dim-socio'], d['dim-cog'], d['dim-esp']],
+          backgroundColor: ['#E91E63', '#2196F3', '#9C27B0'],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { min: 0, max: 100, grid: { color:'#F1F1EB' } }, y: { grid: { display: false } } }
+      }
+    });
+  }
+}
+
+function paintStudentRadar() {
+  const ctx = document.getElementById('chRadar');
+  if (!ctx) return;
+  const ev = evalsPorEstudiante(state.estudianteFiltro);
+  const d = promedioPorDimension(ev);
+  state.charts.radar = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Socioafectiva', 'Cognitiva', 'Espiritual religiosa'],
+      datasets: [{
+        label: 'Logro promedio',
+        data: [d['dim-socio']||0, d['dim-cog']||0, d['dim-esp']||0],
+        backgroundColor: 'rgba(0,48,135,0.18)',
+        borderColor: '#003087', borderWidth: 2,
+        pointBackgroundColor: ['#E91E63', '#2196F3', '#9C27B0'],
+        pointRadius: 6, pointHoverRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100, ticks: { stepSize: 20, backdropColor: 'transparent', font: { size: 10 } },
+          grid: { color: '#E5E5DD' }, angleLines: { color: '#E5E5DD' },
+          pointLabels: { font: { size: 12, weight: '600' } }
+        }
+      }
+    }
+  });
+}
+
+// =============================================================
+//  ROLE SWITCHER
+// =============================================================
+document.getElementById('roleSwitcher').addEventListener('click', (e) => {
+  const btn = e.target.closest('.role-btn');
+  if (!btn) return;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b===btn));
+  state.role = btn.dataset.role;
+  state.estudianteFiltro = null;
+  render();
+});
+
+// =============================================================
+//  MAIN: cargar datos desde Apps Script Web App y arrancar
+// =============================================================
+fetch(`${ENDPOINT_MAFI}?action=datos&ciclo=Primer`)
+  .then(r => r.json())
+  .then(raw => {
+    if (!raw.ok) throw new Error(raw.error || 'Error desconocido en el endpoint');
+    state.data = adaptarDatosDoGet(raw);
+    if (!state.data.cursos.length) throw new Error('El endpoint no devolvió cursos con datos.');
+    // Curso por defecto: primero disponible
+    state.cursoFiltro = state.data.cursos[0].id;
+    render();
+  })
+  .catch(err => {
+    document.getElementById('app').innerHTML = `
+      <div class="loader">
+        <div class="loader-text">No se pudieron cargar los datos</div>
+        <p style="color:var(--muted); max-width:520px; text-align:center">
+          ${err.message}<br><br>
+          Verifica que la URL del endpoint en <code>ENDPOINT_MAFI</code> sea correcta
+          y que la Web App esté publicada con acceso "Cualquier persona".
+        </p>
+      </div>
+    `;
+    console.error(err);
+  });
+
+// Re-render cuando se cambian filtros: ya está en render() vía paintCharts
+</script>
+</body>
+</html>
