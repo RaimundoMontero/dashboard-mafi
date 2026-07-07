@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
@@ -485,7 +484,7 @@
 // =============================================================
 //  ENDPOINT — reemplazar con la URL real de tu Web App
 // =============================================================
-const ENDPOINT_MAFI = CONFIG.endpoint;
+const ENDPOINT_MAFI = 'TU_URL_AQUI'; // ej: https://script.google.com/macros/s/XXX/exec
 
 // =============================================================
 //  CATÁLOGO MAFI — dim → eje → aprendizaje por nivel
@@ -1382,6 +1381,7 @@ function renderStudentDetail(estId) {
             </div>
             <span class="badge badge-${conf.letra.toLowerCase()[0]}" style="margin-top:4px">${conf.label}</span>
           </div>
+          <button class="close-btn" id="btnVerPDF" style="background:var(--school-blue);color:white;border-color:var(--school-blue)" onclick="verInformePDF(this)">📄 Ver informe</button>
           <button class="close-btn" data-cerrar-estudiante>Cerrar</button>
         </div>
       </div>
@@ -1617,6 +1617,34 @@ function paintStudentRadar() {
 }
 
 // =============================================================
+//  PDF — buscar informe en Drive
+// =============================================================
+function verInformePDF(btn) {
+  const est = byId(state.data.estudiantes, state.estudianteFiltro);
+  if (!est) return;
+  const curso = byId(state.data.cursos, est.cursoId);
+  const nombreArchivo = "Informe " + curso.nombre + " - " + est.nombreCompleto + ".pdf";
+  btn.textContent = "Buscando...";
+  btn.disabled = true;
+  fetch(ENDPOINT_MAFI + "?action=pdf&curso=" + encodeURIComponent(curso.nombre) + "&nombre=" + encodeURIComponent(est.nombreCompleto))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (res.ok && res.url) {
+        window.open(res.url, "_blank");
+      } else {
+        alert("No se encontró el informe para " + est.nombreCompleto + ". Puede que aún no haya sido generado.");
+      }
+      btn.textContent = "📄 Ver informe";
+      btn.disabled = false;
+    })
+    .catch(function(err){
+      alert("Error al buscar el informe: " + err.message);
+      btn.textContent = "📄 Ver informe";
+      btn.disabled = false;
+    });
+}
+
+// =============================================================
 //  ROLE SWITCHER
 // =============================================================
 document.getElementById('roleSwitcher').addEventListener('click', (e) => {
@@ -1628,32 +1656,78 @@ document.getElementById('roleSwitcher').addEventListener('click', (e) => {
   render();
 });
 
+
 // =============================================================
-//  MAIN: cargar datos desde Apps Script Web App y arrancar
+//  CARGA DE DATOS — lazy por curso
 // =============================================================
-fetch(`${ENDPOINT_MAFI}?action=datos&ciclo=Primer`)
-  .then(r => r.json())
-  .then(raw => {
-    if (!raw.ok) throw new Error(raw.error || 'Error desconocido en el endpoint');
-    state.data = adaptarDatosDoGet(raw);
-    if (!state.data.cursos.length) throw new Error('El endpoint no devolvió cursos con datos.');
-    // Curso por defecto: primero disponible
-    state.cursoFiltro = state.data.cursos[0].id;
+
+const CURSOS_DISPONIBLES = [
+  { id:'PG-A', nombre:'PG-A', nivel:'Playgroup', cicloColegio:'Primer Ciclo' },
+  { id:'PG-B', nombre:'PG-B', nivel:'Playgroup', cicloColegio:'Primer Ciclo' },
+  { id:'PK-A', nombre:'PK-A', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
+  { id:'PK-B', nombre:'PK-B', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
+  { id:'PK-C', nombre:'PK-C', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
+  { id:'K-A',  nombre:'K-A',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
+  { id:'K-B',  nombre:'K-B',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
+  { id:'K-C',  nombre:'K-C',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
+  { id:'1-A',  nombre:'1-A',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
+  { id:'1-B',  nombre:'1-B',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
+  { id:'1-C',  nombre:'1-C',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
+  { id:'2-A',  nombre:'2-A',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
+  { id:'2-B',  nombre:'2-B',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
+  { id:'2-C',  nombre:'2-C',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
+];
+
+const cache = {};
+
+function mostrarLoader() {
+  document.getElementById('app').innerHTML =
+    '<div class="loader"><div class="loader-text">Cargando datos del curso\u2026</div><div class="loader-bar"></div></div>';
+}
+
+function cargarCurso(hojaId) {
+  if (cache[hojaId]) {
+    state.data = cache[hojaId];
+    state.cursoFiltro = hojaId;
     render();
-  })
-  .catch(err => {
-    document.getElementById('app').innerHTML = `
-      <div class="loader">
-        <div class="loader-text">No se pudieron cargar los datos</div>
-        <p style="color:var(--muted); max-width:520px; text-align:center">
-          ${err.message}<br><br>
-          Verifica que la URL del endpoint en <code>ENDPOINT_MAFI</code> sea correcta
-          y que la Web App esté publicada con acceso "Cualquier persona".
-        </p>
-      </div>
-    `;
-    console.error(err);
-  });
+    return;
+  }
+  mostrarLoader();
+  fetch(ENDPOINT_MAFI + '?action=datos&ciclo=Primer&hoja=' + encodeURIComponent(hojaId))
+    .then(function(r){ return r.json(); })
+    .then(function(raw){
+      if (!raw.ok) throw new Error(raw.error || 'Error desconocido en el endpoint');
+      var datos = adaptarDatosDoGet(raw);
+      if (!datos.cursos.length) throw new Error('No hay datos para el curso ' + hojaId + '.');
+      datos.cursos = CURSOS_DISPONIBLES.map(function(c){
+        var real = datos.cursos.find(function(x){ return x.id === c.id; });
+        return real || c;
+      });
+      cache[hojaId] = datos;
+      state.data = datos;
+      state.cursoFiltro = hojaId;
+      render();
+    })
+    .catch(function(err){
+      document.getElementById('app').innerHTML =
+        '<div class="loader"><div class="loader-text">No se pudieron cargar los datos</div>' +
+        '<p style="color:var(--muted);max-width:520px;text-align:center">' + err.message + '</p></div>';
+      console.error(err);
+    });
+}
+
+// Cambio de curso lazy — intercepta antes del attachHandlers normal
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-pick-curso]');
+  if (!el) return;
+  var hojaId = el.dataset.pickCurso;
+  if (hojaId === state.cursoFiltro) return;
+  state.estudianteFiltro = null;
+  cargarCurso(hojaId);
+});
+
+// Carga inicial
+cargarCurso('PG-A');
 
 // Re-render cuando se cambian filtros: ya está en render() vía paintCharts
 </script>
