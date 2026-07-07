@@ -1697,6 +1697,7 @@ function cargarCurso(hojaId) {
   fetch(ENDPOINT_MAFI + '?action=datos&ciclo=Primer&hoja=' + encodeURIComponent(hojaId))
     .then(function(r){ return r.json(); })
     .then(function(raw){
+      console.log('raw PGB:', JSON.stringify(raw).slice(0, 500));
       if (!raw.ok) throw new Error(raw.error || 'Error desconocido en el endpoint');
       var datos = adaptarDatosDoGet(raw);
       if (!datos.cursos.length) throw new Error('No hay datos para el curso ' + hojaId + '.');
