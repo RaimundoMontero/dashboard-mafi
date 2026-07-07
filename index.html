@@ -877,13 +877,7 @@ function attachHandlers() {
       render();
     });
   });
-  document.querySelectorAll('[data-pick-curso]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.cursoFiltro = el.dataset.pickCurso;
-      state.estudianteFiltro = null;
-      render();
-    });
-  });
+  
   document.querySelectorAll('[data-pick-estudiante]').forEach(el => {
     el.addEventListener('click', () => {
       state.estudianteFiltro = el.dataset.pickEstudiante;
