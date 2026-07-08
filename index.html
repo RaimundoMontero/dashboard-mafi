@@ -1944,7 +1944,7 @@ function mostrarLoader() {
 
 function cargarCurso(hojaId) {
   if (cache[hojaId]) {
-    state.data = cache[hojaId];
+    mergeAlPool(cache[hojaId]);
     state.cursoFiltro = hojaId;
     render();
     return;
