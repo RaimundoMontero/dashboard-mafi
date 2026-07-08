@@ -467,9 +467,8 @@
       <div class="brand-tag">Colegio San Francisco Javier</div>
     </div>
     <div class="role-switcher" id="roleSwitcher">
-      <button class="role-btn" data-role="directivo">Equipo directivo</button>
-      <button class="role-btn" data-role="ciclo">Director de ciclo</button>
-      <button class="role-btn active" data-role="jefe">Profesor jefe</button>
+      <button class="role-btn active" data-role="jefe">Cursos</button>
+      <button class="role-btn" data-role="nivel">Nivel</button>
     </div>
   </div>
 </header>
@@ -485,7 +484,7 @@
 // =============================================================
 //  ENDPOINT — reemplazar con la URL real de tu Web App
 // =============================================================
-const ENDPOINT_MAFI = CONFIG.endpoint;
+const ENDPOINT_MAFI = 'TU_URL_AQUI'; // ej: https://script.google.com/macros/s/XXX/exec
 
 // =============================================================
 //  CATÁLOGO MAFI — dim → eje → aprendizaje por nivel
@@ -706,7 +705,8 @@ function adaptarDatosDoGet(raw) {
 // =============================================================
 const state = {
   data: null,
-  role: 'jefe',           // vista por defecto: profesor jefe
+  role: 'jefe',
+  nivelFiltro: 'Playgroup',
   cicloFiltro: 'Primer Ciclo',
   cursoFiltro: null,
   estudianteFiltro: null,
@@ -850,9 +850,8 @@ function render() {
   for (const k in state.charts) state.charts[k]?.destroy();
   state.charts = {};
 
-  if (state.role === 'directivo')   app.innerHTML = renderDirectivo();
-  else if (state.role === 'ciclo')   app.innerHTML = renderDirectorCiclo();
-  else if (state.role === 'jefe')    app.innerHTML = renderProfesorJefe();
+  if (state.role === 'jefe')    app.innerHTML = renderProfesorJefe();
+  else if (state.role === 'nivel')   app.innerHTML = renderNivel();
 
   // Atajar handlers después del innerHTML
   attachHandlers();
@@ -877,7 +876,13 @@ function attachHandlers() {
       render();
     });
   });
-  
+  document.querySelectorAll('[data-pick-curso]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.cursoFiltro = el.dataset.pickCurso;
+      state.estudianteFiltro = null;
+      render();
+    });
+  });
   document.querySelectorAll('[data-pick-estudiante]').forEach(el => {
     el.addEventListener('click', () => {
       state.estudianteFiltro = el.dataset.pickEstudiante;
@@ -893,6 +898,12 @@ function attachHandlers() {
   document.querySelectorAll('[data-pick-dim]').forEach(el => {
     el.addEventListener('click', () => {
       state.dimSeleccionada = el.dataset.pickDim;
+      render();
+    });
+  });
+  document.querySelectorAll('[data-pick-nivel]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.nivelFiltro = el.dataset.pickNivel;
       render();
     });
   });
@@ -1417,9 +1428,8 @@ function renderStudentDetail(estId) {
 //  CHARTS (post-render)
 // =============================================================
 function paintCharts() {
-  if (state.role === 'directivo') paintDirectivoCharts();
-  else if (state.role === 'ciclo') paintCicloCharts();
-  else if (state.role === 'jefe') paintJefeCharts();
+  if (state.role === 'jefe') paintJefeCharts();
+  else if (state.role === 'nivel') paintNivelCharts();
   if (state.estudianteFiltro) paintStudentRadar();
 }
 
@@ -1639,6 +1649,179 @@ function verInformePDF(btn) {
     });
 }
 
+
+// =============================================================
+//  VISTA: NIVEL (comparativo entre cursos del mismo nivel)
+// =============================================================
+
+const NIVELES_DISPONIBLES = ['Playgroup','Prekinder','Kinder','Primero','Segundo'];
+
+const NIVEL_LABEL = {
+  'Playgroup': 'Playgroup',
+  'Prekinder': 'Pre-Kínder',
+  'Kinder':    'Kínder',
+  'Primero':   '1° Básico',
+  'Segundo':   '2° Básico',
+};
+
+function cursosPorNivel(nivelId) {
+  return state.data.cursos.filter(c => c.nivel === nivelId);
+}
+
+function renderNivel() {
+  const nivelId = state.nivelFiltro || NIVELES_DISPONIBLES[0];
+  const cursos = cursosPorNivel(nivelId);
+
+  // Si el nivel aún no tiene datos cargados, mostrar mensaje
+  const cursosConDatos = cursos.filter(c => evalsPorCurso(c.id).length > 0);
+
+  const evsTodos = cursos.flatMap(c => evalsPorCurso(c.id));
+  const obs = evsTodos.filter(e => e.puntaje !== null);
+  const promGeneral = promedio(obs.map(e => e.puntaje));
+  const dimProm = promedioPorDimension(evsTodos);
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-eyebrow">1° Semestre 2026 · Vista por nivel</div>
+        <h1 class="view-title" style="font-style:normal">${NIVEL_LABEL[nivelId] || nivelId}</h1>
+        <p class="view-sub">${cursosConDatos.length} curso${cursosConDatos.length!==1?'s':''} con datos · ${obs.length} evaluaciones observadas</p>
+      </div>
+      <div class="pill-selector">
+        ${NIVELES_DISPONIBLES.map(n =>
+          `<button class="pill ${n===nivelId?'active':''}" data-pick-nivel="${n}">${NIVEL_LABEL[n]}</button>`
+        ).join('')}
+      </div>
+    </div>
+
+    ${cursosConDatos.length === 0 ? `
+      <div class="empty">No hay datos cargados para ${NIVEL_LABEL[nivelId]} aún.<br>
+      Selecciona primero los cursos en la vista "Cursos" para precargarlos.</div>
+    ` : `
+      <div class="grid-2">
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">Comparación entre cursos</h2>
+          </div>
+          <div class="chart-box"><canvas id="chNivelCursos"></canvas></div>
+        </section>
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">Por dimensión</h2>
+          </div>
+          <div class="chart-box"><canvas id="chNivelDim"></canvas></div>
+        </section>
+      </div>
+
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Promedio por curso y dimensión</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Promedio total</th>
+                <th>Socioafectiva</th>
+                <th>Cognitiva</th>
+                <th>Espiritual</th>
+                <th>Estudiantes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cursos.map(c => {
+                const evs = evalsPorCurso(c.id);
+                const obsC = evs.filter(e => e.puntaje !== null);
+                const prom = promedio(obsC.map(e => e.puntaje));
+                const dp = promedioPorDimension(evs);
+                const cls = clasificar(prom);
+                const conf = NIVELES_LOGRO.find(n => n.id === cls);
+                const nEst = estudiantesPorCurso(c.id).length;
+                const badgeDim = (v) => {
+                  const c2 = clasificar(v);
+                  const cf = NIVELES_LOGRO.find(n => n.id === c2);
+                  return v !== null
+                    ? `<span class="badge badge-${cf.letra.toLowerCase()[0]}">${fmt(v)}</span>`
+                    : '<span style="color:var(--muted)">—</span>';
+                };
+                return `<tr>
+                  <td><strong>${c.nombre}</strong></td>
+                  <td>${prom !== null ? `<span class="badge badge-${conf.letra.toLowerCase()[0]}">${fmt(prom)}</span>` : '<span style="color:var(--muted)">Sin datos</span>'}</td>
+                  <td>${badgeDim(dp['dim-socio'])}</td>
+                  <td>${badgeDim(dp['dim-cog'])}</td>
+                  <td>${badgeDim(dp['dim-esp'])}</td>
+                  <td style="color:var(--muted)">${nEst}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      ${renderDimDetail(evsTodos)}
+    `}
+  `;
+}
+
+function paintNivelCharts() {
+  const nivelId = state.nivelFiltro || NIVELES_DISPONIBLES[0];
+  const cursos = cursosPorNivel(nivelId).filter(c => evalsPorCurso(c.id).length > 0);
+
+  const ctx1 = document.getElementById('chNivelCursos');
+  if (ctx1) {
+    const DIM_COLORS = { 'dim-socio': '#E91E63', 'dim-cog': '#2196F3', 'dim-esp': '#9C27B0' };
+    const DIM_LABELS = { 'dim-socio': 'Socioafectiva', 'dim-cog': 'Cognitiva', 'dim-esp': 'Espiritual' };
+    const datasets = Object.keys(DIM_COLORS).map(dimId => ({
+      label: DIM_LABELS[dimId],
+      data: cursos.map(c => {
+        const evs = evalsPorCurso(c.id);
+        return promedioPorDimension(evs)[dimId];
+      }),
+      backgroundColor: DIM_COLORS[dimId],
+      borderRadius: 4,
+    }));
+    state.charts.nivelCursos = new Chart(ctx1, {
+      type: 'bar',
+      data: { labels: cursos.map(c => c.nombre), datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { min: 0, max: 100, grid: { color: '#F1F1EB' } }
+        }
+      }
+    });
+  }
+
+  const ctx2 = document.getElementById('chNivelDim');
+  if (ctx2) {
+    const evsTodos = cursos.flatMap(c => evalsPorCurso(c.id));
+    const d = promedioPorDimension(evsTodos);
+    state.charts.nivelDim = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: ['Socioafectiva', 'Cognitiva', 'Espiritual religiosa'],
+        datasets: [{
+          data: [d['dim-socio'], d['dim-cog'], d['dim-esp']],
+          backgroundColor: ['#E91E63', '#2196F3', '#9C27B0'],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { min: 0, max: 100, grid: { color: '#F1F1EB' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+
 // =============================================================
 //  ROLE SWITCHER
 // =============================================================
@@ -1691,7 +1874,6 @@ function cargarCurso(hojaId) {
   fetch(ENDPOINT_MAFI + '?action=datos&ciclo=Primer&hoja=' + encodeURIComponent(hojaId))
     .then(function(r){ return r.json(); })
     .then(function(raw){
-      console.log('raw PGB:', JSON.stringify(raw).slice(0, 500));
       if (!raw.ok) throw new Error(raw.error || 'Error desconocido en el endpoint');
       var datos = adaptarDatosDoGet(raw);
       if (!datos.cursos.length) throw new Error('No hay datos para el curso ' + hojaId + '.');
