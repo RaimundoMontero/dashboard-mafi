@@ -702,6 +702,52 @@ function adaptarDatosDoGet(raw) {
 // =============================================================
 //  ESTADO Y CARGA
 // =============================================================
+const CURSOS_DISPONIBLES = [
+  { id:'PG-A', nombre:'PG-A', nivel:'Playgroup', cicloColegio:'Primer Ciclo' },
+  { id:'PG-B', nombre:'PG-B', nivel:'Playgroup', cicloColegio:'Primer Ciclo' },
+  { id:'PK-A', nombre:'PK-A', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
+  { id:'PK-B', nombre:'PK-B', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
+  { id:'PK-C', nombre:'PK-C', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
+  { id:'K-A',  nombre:'K-A',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
+  { id:'K-B',  nombre:'K-B',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
+  { id:'K-C',  nombre:'K-C',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
+  { id:'1-A',  nombre:'1-A',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
+  { id:'1-B',  nombre:'1-B',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
+  { id:'1-C',  nombre:'1-C',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
+  { id:'2-A',  nombre:'2-A',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
+  { id:'2-B',  nombre:'2-B',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
+  { id:'2-C',  nombre:'2-C',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
+];
+
+// Pool global acumulativo: nunca se pisa, solo se agrega
+const pool = {
+  cursos: [],
+  estudiantes: [],
+  evaluaciones: [],
+  niveles: [],
+};
+
+function mergeAlPool(datos) {
+  for (var c of datos.cursos) {
+    var idx = pool.cursos.findIndex(function(x){ return x.id === c.id; });
+    if (idx >= 0) pool.cursos[idx] = c; else pool.cursos.push(c);
+  }
+  for (var e of datos.estudiantes) {
+    if (!pool.estudiantes.find(function(x){ return x.id === e.id; })) pool.estudiantes.push(e);
+  }
+  for (var ev of datos.evaluaciones) {
+    pool.evaluaciones.push(ev);
+  }
+  for (var n of datos.niveles) {
+    if (!pool.niveles.find(function(x){ return x.id === n.id; })) pool.niveles.push(n);
+  }
+  // Asegurar que todos los cursos disponibles estén en el pool (aunque sin datos)
+  for (var cd of CURSOS_DISPONIBLES) {
+    if (!pool.cursos.find(function(x){ return x.id === cd.id; })) pool.cursos.push(cd);
+  }
+  state.data = pool;
+}
+
 const state = {
   data: pool,
   role: 'jefe',
@@ -1887,53 +1933,9 @@ document.getElementById('roleSwitcher').addEventListener('click', (e) => {
 //  CARGA DE DATOS — lazy por curso
 // =============================================================
 
-const CURSOS_DISPONIBLES = [
-  { id:'PG-A', nombre:'PG-A', nivel:'Playgroup', cicloColegio:'Primer Ciclo' },
-  { id:'PG-B', nombre:'PG-B', nivel:'Playgroup', cicloColegio:'Primer Ciclo' },
-  { id:'PK-A', nombre:'PK-A', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
-  { id:'PK-B', nombre:'PK-B', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
-  { id:'PK-C', nombre:'PK-C', nivel:'Prekinder', cicloColegio:'Primer Ciclo' },
-  { id:'K-A',  nombre:'K-A',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
-  { id:'K-B',  nombre:'K-B',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
-  { id:'K-C',  nombre:'K-C',  nivel:'Kinder',    cicloColegio:'Primer Ciclo' },
-  { id:'1-A',  nombre:'1-A',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
-  { id:'1-B',  nombre:'1-B',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
-  { id:'1-C',  nombre:'1-C',  nivel:'Primero',   cicloColegio:'Primer Ciclo' },
-  { id:'2-A',  nombre:'2-A',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
-  { id:'2-B',  nombre:'2-B',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
-  { id:'2-C',  nombre:'2-C',  nivel:'Segundo',   cicloColegio:'Primer Ciclo' },
-];
+
 
 const cache = {};
-
-// Pool global acumulativo: nunca se pisa, solo se agrega
-const pool = {
-  cursos: [],
-  estudiantes: [],
-  evaluaciones: [],
-  niveles: [],
-};
-
-function mergeAlPool(datos) {
-  for (var c of datos.cursos) {
-    var idx = pool.cursos.findIndex(function(x){ return x.id === c.id; });
-    if (idx >= 0) pool.cursos[idx] = c; else pool.cursos.push(c);
-  }
-  for (var e of datos.estudiantes) {
-    if (!pool.estudiantes.find(function(x){ return x.id === e.id; })) pool.estudiantes.push(e);
-  }
-  for (var ev of datos.evaluaciones) {
-    pool.evaluaciones.push(ev);
-  }
-  for (var n of datos.niveles) {
-    if (!pool.niveles.find(function(x){ return x.id === n.id; })) pool.niveles.push(n);
-  }
-  // Asegurar que todos los cursos disponibles estén en el pool (aunque sin datos)
-  for (var cd of CURSOS_DISPONIBLES) {
-    if (!pool.cursos.find(function(x){ return x.id === cd.id; })) pool.cursos.push(cd);
-  }
-  state.data = pool;
-}
 
 function mostrarLoader() {
   document.getElementById('app').innerHTML =
@@ -1960,7 +1962,6 @@ function cargarCurso(hojaId) {
       });
       cache[hojaId] = datos;
       mergeAlPool(datos);
-      console.log('pool cursos:', pool.cursos.map(function(c){ return c.id + '(' + (pool.evaluaciones.filter(function(e){ return e.cursoId===c.id; }).length) + ')'; }));
       state.cursoFiltro = hojaId;
       render();
     })
