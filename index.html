@@ -1963,8 +1963,28 @@ function cargarCurso(hojaId) {
       cache[hojaId] = datos;
       mergeAlPool(datos);
       state.cursoFiltro = hojaId;
-      console.log('[cargarCurso]', hojaId, '- pool evals:', pool.evaluaciones.length, '- cursos con evals:', pool.cursos.map(function(c){ return c.id+':'+pool.evaluaciones.filter(function(e){ return e.cursoId===c.id; }).length; }).filter(function(s){ return s.split(':')[1]!=='0'; }));
       render();
+      // Precargar en segundo plano los demás cursos del mismo nivel
+      var nivelDelCurso = datos.cursos.find(function(c){ return c.id === hojaId; });
+      if (nivelDelCurso && nivelDelCurso.nivel && NIVEL_A_HOJAS[nivelDelCurso.nivel]) {
+        NIVEL_A_HOJAS[nivelDelCurso.nivel].forEach(function(h){
+          if (h === hojaId || cache[h]) return;
+          fetch(ENDPOINT_MAFI + '?action=datos&ciclo=Primer&hoja=' + encodeURIComponent(h))
+            .then(function(r){ return r.json(); })
+            .then(function(raw){
+              if (!raw.ok) return;
+              var d = adaptarDatosDoGet(raw);
+              if (!d.cursos.length) return;
+              d.cursos = CURSOS_DISPONIBLES.map(function(c){
+                var real = d.cursos.find(function(x){ return x.id === c.id; });
+                return real || c;
+              });
+              cache[h] = d;
+              mergeAlPool(d);
+            })
+            .catch(function(){});
+        });
+      }
     })
     .catch(function(err){
       document.getElementById('app').innerHTML =
