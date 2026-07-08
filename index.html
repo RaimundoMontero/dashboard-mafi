@@ -1963,6 +1963,7 @@ function cargarCurso(hojaId) {
       cache[hojaId] = datos;
       mergeAlPool(datos);
       state.cursoFiltro = hojaId;
+      console.log('[cargarCurso]', hojaId, '- pool evals:', pool.evaluaciones.length, '- cursos con evals:', pool.cursos.map(function(c){ return c.id+':'+pool.evaluaciones.filter(function(e){ return e.cursoId===c.id; }).length; }).filter(function(s){ return s.split(':')[1]!=='0'; }));
       render();
     })
     .catch(function(err){
