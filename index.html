@@ -1960,6 +1960,7 @@ function cargarCurso(hojaId) {
       });
       cache[hojaId] = datos;
       mergeAlPool(datos);
+      console.log('pool cursos:', pool.cursos.map(function(c){ return c.id + '(' + (pool.evaluaciones.filter(function(e){ return e.cursoId===c.id; }).length) + ')'; }));
       state.cursoFiltro = hojaId;
       render();
     })
