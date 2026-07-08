@@ -703,7 +703,7 @@ function adaptarDatosDoGet(raw) {
 //  ESTADO Y CARGA
 // =============================================================
 const state = {
-  data: null,
+  data: pool,
   role: 'jefe',
   nivelFiltro: 'Playgroup',
   cicloFiltro: 'Primer Ciclo',
@@ -1702,30 +1702,11 @@ function cargarNivel(nivelId) {
         .catch(function(){})
     )
   ).then(function(){
-    // Merge: state.data debe tener todos los datos de las hojas cargadas del nivel
-    // Usamos el primer cache disponible del nivel como base y mergeamos los demás
+    // Mergear todas las hojas recién cargadas al pool global
     var hojasCargadas = hojas.filter(function(h){ return cache[h]; });
-    if (!hojasCargadas.length) {
-      state.nivelFiltro = nivelId;
-      render();
-      return;
+    for (var h of hojasCargadas) {
+      mergeAlPool(cache[h]);
     }
-    // Merge de estudiantes y evaluaciones de todas las hojas del nivel
-    var base = JSON.parse(JSON.stringify(cache[hojasCargadas[0]]));
-    for (var i = 1; i < hojasCargadas.length; i++) {
-      var otro = cache[hojasCargadas[i]];
-      otro.estudiantes.forEach(function(e){ if (!base.estudiantes.find(function(x){ return x.id===e.id; })) base.estudiantes.push(e); });
-      otro.evaluaciones.forEach(function(e){ base.evaluaciones.push(e); });
-      otro.cursos.forEach(function(c){
-        var idx = base.cursos.findIndex(function(x){ return x.id===c.id; });
-        if (idx >= 0) base.cursos[idx] = c; else base.cursos.push(c);
-      });
-    }
-    base.cursos = CURSOS_DISPONIBLES.map(function(c){
-      var real = base.cursos.find(function(x){ return x.id===c.id; });
-      return real || c;
-    });
-    state.data = base;
     state.nivelFiltro = nivelId;
     render();
   });
@@ -1925,6 +1906,35 @@ const CURSOS_DISPONIBLES = [
 
 const cache = {};
 
+// Pool global acumulativo: nunca se pisa, solo se agrega
+const pool = {
+  cursos: [],
+  estudiantes: [],
+  evaluaciones: [],
+  niveles: [],
+};
+
+function mergeAlPool(datos) {
+  for (var c of datos.cursos) {
+    var idx = pool.cursos.findIndex(function(x){ return x.id === c.id; });
+    if (idx >= 0) pool.cursos[idx] = c; else pool.cursos.push(c);
+  }
+  for (var e of datos.estudiantes) {
+    if (!pool.estudiantes.find(function(x){ return x.id === e.id; })) pool.estudiantes.push(e);
+  }
+  for (var ev of datos.evaluaciones) {
+    pool.evaluaciones.push(ev);
+  }
+  for (var n of datos.niveles) {
+    if (!pool.niveles.find(function(x){ return x.id === n.id; })) pool.niveles.push(n);
+  }
+  // Asegurar que todos los cursos disponibles estén en el pool (aunque sin datos)
+  for (var cd of CURSOS_DISPONIBLES) {
+    if (!pool.cursos.find(function(x){ return x.id === cd.id; })) pool.cursos.push(cd);
+  }
+  state.data = pool;
+}
+
 function mostrarLoader() {
   document.getElementById('app').innerHTML =
     '<div class="loader"><div class="loader-text">Cargando datos del curso\u2026</div><div class="loader-bar"></div></div>';
@@ -1949,7 +1959,7 @@ function cargarCurso(hojaId) {
         return real || c;
       });
       cache[hojaId] = datos;
-      state.data = datos;
+      mergeAlPool(datos);
       state.cursoFiltro = hojaId;
       render();
     })
