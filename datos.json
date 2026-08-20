@@ -2185,28 +2185,29 @@
       "estudiantes": [
         {
           "nombre": "Acuña Garrido, Santiago Leon",
-          "promedio_total": 52.67,
-          "promedio_socio": 50.1,
-          "promedio_cog": 47.92,
-          "promedio_esp": 60.0,
+          "promedio_total": 33.33,
+          "promedio_socio": 25.0,
+          "promedio_cog": 35.0,
+          "promedio_esp": 40.0,
           "comentarios": "Santiago, durante este período, te has mostrado como un niño lleno de curiosidad y capacidad de asombro frente a las distintas experiencias y descubrimientos que se presentan en el aula. Disfrutas explorar tu entorno  y observar con interés aquello que llama tu atención. Eres cariñoso, activo y poco a poco vas demostrando mayor interés por seguir aprendiendo y descubriendo nuevas experiencias.\n\nAunque en ocasiones los cambios o situaciones nuevas pueden resultarte difíciles, con el acompañamiento y apoyo de tus educadoras logras mostrar disposición para participar y adaptarte progresivamente. En el día a día te observas feliz, cercano a tus compañeros y demostrando que te sientes parte importante de tu curso.\n\nBuscas ambientes estructurados, lo que te entrega seguridad para desenvolverte con mayor tranquilidad. Además, manifiestas gran interés por las canciones, las letras y las experiencias sensoriales, especialmente aquellas relacionadas con masas, témperas y diferentes texturas, disfrutando explorar a través de tus sentidos y creatividad. Como desafío para el próximo semestre, se espera que puedas continuar fortaleciendo tu disposición frente a los cambios y nuevas experiencias, desarrollando mayor seguridad y confianza en ti mismo para enfrentar situaciones diferentes con mayor autonomía. Asimismo, seguiremos acompañándote para potenciar tu participación activa en diversas actividades, favoreciendo cada vez más tu flexibilidad y adaptación dentro de la rutina escolar.\n\nCon cariño,\nMiss Mónica y Miss Carolina.\nPrekínder C",
           "aprendizajes": {
-            "1.1": 48.57,
-            "1.2": 50.0,
-            "1.3": 80.0,
-            "1.4": null,
-            "2.1": 32.0,
+            "1.1": 42.0,
+            "1.2": 60.0,
+            "1.3": 40.0,
+            "1.4": 15.0,
+            "2.1": 20.0,
             "3.1": 30.0,
             "3.2": 60.0,
-            "4.1": 26.67,
+            "4.1": 27.0,
             "4.3": 50.0,
-            "5.1": 60.0,
-            "6.1": 55.0,
+            "5.1": 40.0,
+            "6.1": 67.0,
             "7.1": 20.0,
-            "7.2": 100,
-            "8.1": 60.0,
-            "8.3": null,
-            "9.3": 60.0
+            "7.2": 40.0,
+            "8.1": 55.0,
+            "8.3": 60.0,
+            "9.1": 20.0,
+            "9.3": null
           }
         },
         {
@@ -2767,33 +2768,6 @@
           }
         },
         {
-          "nombre": "Cárcamo Hernández, Josefa Antonia",
-          "promedio_total": 63.57,
-          "promedio_socio": 65.0,
-          "promedio_cog": 59.5,
-          "promedio_esp": 66.2,
-          "comentarios": "Querida Josefa, queremos felicitarte por el hermoso semestre que vivimos juntas. Destacas de manera muy especial en el grupo por tu dulzura, tu compañerismo y por ser una niña siempre respetuosa y colaboradora con todos.\nSabemos que este año ha traído nuevos desafíos que, en ocasiones, te generan cierta inseguridad y te llevan a ser un poco silenciosa. Queremos que sepas que siempre te acompañaremos para que, a tu propio ritmo, comiences a desplegar tu expresión oral con mayor confianza. Te invitamos con mucho cariño a compartir tus ideas, describir lo que observas, hacer preguntas y plantear tus propios pensamientos. ¡Estamos seguras de que tienes mucho que decir! Fortalecer tu comunicación no solo enriquecerá tus interacciones, sino que también potenciará tu pensamiento crítico y tu capacidad para organizar ideas de forma autónoma.\nRespecto al Plan de Lectoescritura, hemos visto algunos avances en el desarrollo de conciencia fonológica. Para el próximo período, la invitación es a continuar fortaleciendo con el reconocimiento del alfabeto y tus destrezas grafomotoras, ya que estos logros constituyen la base fundamental para una iniciación exitosa en la lectura y la escritura.\n¡Muy bien Josefa! Esperamos que este nuevo semestre sea una aventura maravillosa, llena de aprendizajes y grandes oportunidades para seguir creciendo de manera integral. ¡Estamos listas para acompañarte y celebrar cada uno de tus pasos!",
-          "aprendizajes": {
-            "1.1": 76.66,
-            "1.2": 60.0,
-            "1.3": 46.67,
-            "1.4": 60.0,
-            "2.1": 60.0,
-            "3.1": 80.0,
-            "3.2": 60.0,
-            "4.1": 60.0,
-            "4.3": 60.0,
-            "5.1": 38.0,
-            "6.1": 80.0,
-            "7.1": 55.0,
-            "7.2": 80.0,
-            "8.1": 76.0,
-            "8.3": 40.0,
-            "9.1": 80.0,
-            "9.3": null
-          }
-        },
-        {
           "nombre": "Chavez Velásquez, Gracia Florencia",
           "promedio_total": 63.81,
           "promedio_socio": 62.58,
@@ -2817,6 +2791,33 @@
             "8.1": 72.0,
             "8.3": 50.0,
             "9.1": 60.0,
+            "9.3": null
+          }
+        },
+        {
+          "nombre": "Cárcamo Hernández, Josefa Antonia",
+          "promedio_total": 63.57,
+          "promedio_socio": 65.0,
+          "promedio_cog": 59.5,
+          "promedio_esp": 66.2,
+          "comentarios": "Querida Josefa, queremos felicitarte por el hermoso semestre que vivimos juntas. Destacas de manera muy especial en el grupo por tu dulzura, tu compañerismo y por ser una niña siempre respetuosa y colaboradora con todos.\nSabemos que este año ha traído nuevos desafíos que, en ocasiones, te generan cierta inseguridad y te llevan a ser un poco silenciosa. Queremos que sepas que siempre te acompañaremos para que, a tu propio ritmo, comiences a desplegar tu expresión oral con mayor confianza. Te invitamos con mucho cariño a compartir tus ideas, describir lo que observas, hacer preguntas y plantear tus propios pensamientos. ¡Estamos seguras de que tienes mucho que decir! Fortalecer tu comunicación no solo enriquecerá tus interacciones, sino que también potenciará tu pensamiento crítico y tu capacidad para organizar ideas de forma autónoma.\nRespecto al Plan de Lectoescritura, hemos visto algunos avances en el desarrollo de conciencia fonológica. Para el próximo período, la invitación es a continuar fortaleciendo con el reconocimiento del alfabeto y tus destrezas grafomotoras, ya que estos logros constituyen la base fundamental para una iniciación exitosa en la lectura y la escritura.\n¡Muy bien Josefa! Esperamos que este nuevo semestre sea una aventura maravillosa, llena de aprendizajes y grandes oportunidades para seguir creciendo de manera integral. ¡Estamos listas para acompañarte y celebrar cada uno de tus pasos!",
+          "aprendizajes": {
+            "1.1": 76.66,
+            "1.2": 60.0,
+            "1.3": 46.67,
+            "1.4": 60.0,
+            "2.1": 60.0,
+            "3.1": 80.0,
+            "3.2": 60.0,
+            "4.1": 60.0,
+            "4.3": 60.0,
+            "5.1": 38.0,
+            "6.1": 80.0,
+            "7.1": 55.0,
+            "7.2": 80.0,
+            "8.1": 76.0,
+            "8.3": 40.0,
+            "9.1": 80.0,
             "9.3": null
           }
         },
@@ -3168,6 +3169,33 @@
             "8.1": 92.0,
             "8.3": 90.0,
             "9.1": 80.0,
+            "9.3": null
+          }
+        },
+        {
+          "nombre": "Pastén Cárdenas, Facundo José",
+          "promedio_total": 60.1,
+          "promedio_socio": 54.3,
+          "promedio_cog": 61.0,
+          "promedio_esp": 65.0,
+          "comentarios": "Facundo, hemos sido testigos de tus grandes progresos desde que llegaste a Playgroup. Día a día has dado lo mejor de ti, enfrentando cada desafío con tus propias fortalezas. Te caracterizas por ser un niño muy cariñoso y cercano. Tu curiosidad se refleja especialmente en el interés que demuestras por los animales, sus sonidos y sus colores. Además, eres muy querido por tus compañeros, quienes disfrutan de tu compañía y buscan ser tus amigos. Hoy podemos ver que te sientes parte de tu colegio y que, a tu manera, disfrutas de las distintas actividades y experiencias que compartes junto a tu curso. Nos llena de alegría acompañarte en este camino y seguir celebrando cada uno de tus logros.",
+          "aprendizajes": {
+            "1.1": 57.5,
+            "1.2": 25.0,
+            "1.3": 30.0,
+            "1.4": 60.0,
+            "2.1": 46.7,
+            "3.1": 80.0,
+            "3.2": 60.0,
+            "4.1": 53.3,
+            "4.3": 50.0,
+            "5.1": 44.3,
+            "6.1": 86.7,
+            "7.1": 60.0,
+            "7.2": 80.0,
+            "8.1": 80.0,
+            "8.3": 40.0,
+            "9.1": 60.0,
             "9.3": null
           }
         },
